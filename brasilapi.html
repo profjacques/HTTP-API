@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brasil API Integração</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: block;
+        }
+        .error {
+            color: red;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Consulta Brasil API</h1>
+    
+    <div>
+        <h2>Consulta CEP</h2>
+        <input type="text" id="cepInput" placeholder="Digite o CEP" maxlength="8">
+        <button onclick="consultarCEP()">Buscar CEP</button>
+        <div id="loadingCep" class="loading">Carregando...</div>
+        <div id="resultadoCep" class="result"></div>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h2>Consulta Banco</h2>
+        <input type="text" id="codigoBanco" placeholder="Código do Banco">
+        <button onclick="consultarBanco()">Buscar Banco</button>
+        <div id="loadingBanco" class="loading">Carregando...</div>
+        <div id="resultadoBanco" class="result"></div>
+    </div>
+
+    <script>
+        function mostrarLoading(elementId) {
+            document.getElementById(elementId).classList.add('active');
+        }
+
+        function ocultarLoading(elementId) {
+            document.getElementById(elementId).classList.remove('active');
+        }
+
+        function mostrarResultado(elementId, dados) {
+            const elemento = document.getElementById(elementId);
+            if (typeof dados === 'object') {
+                elemento.innerHTML = '<pre>' + JSON.stringify(dados, null, 2) + '</pre>';
+            } else {
+                elemento.innerHTML = dados;
+            }
+        }
+
+        function consultarCEP() {
+            const cep = document.getElementById('cepInput').value.replace(/\D/g, '');
+            
+            if (cep.length !== 8) {
+                mostrarResultado('resultadoCep', '<p class="error">CEP inválido</p>');
+                return;
+            }
+
+            mostrarLoading('loadingCep');
+            mostrarResultado('resultadoCep', '');
+
+            fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`)
+                .then(response => {12345678
+                    if (!response.ok) {
+                        throw new Error('CEP não encontrado');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    mostrarResultado('resultadoCep', data);
+                })
+                .catch(error => {
+                    mostrarResultado('resultadoCep', `<p class="error">Erro: ${error.message}</p>`);
+                })
+                .finally(() => {
+                    ocultarLoading('loadingCep');
+                });
+        }
+
+        function consultarBanco() {
+            const codigo = document.getElementById('codigoBanco').value;
+            
+            if (!codigo) {
+                mostrarResultado('resultadoBanco', '<p class="error">Digite um código de banco</p>');
+                return;
+            }
+
+            mostrarLoading('loadingBanco');
+            mostrarResultado('resultadoBanco', '');
+
+            fetch(`https://brasilapi.com.br/api/banks/v1/${codigo}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Banco não encontrado');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    mostrarResultado('resultadoBanco', data);
+                })
+                .catch(error => {
+                    mostrarResultado('resultadoBanco', `<p class="error">Erro: ${error.message}</p>`);
+                })
+                .finally(() => {
+                    ocultarLoading('loadingBanco');
+                });
+        }
+    </script>
+</body>
+</html>
